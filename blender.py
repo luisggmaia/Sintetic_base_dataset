@@ -1,5 +1,5 @@
 from mathutils import Vector, Matrix
-from utils import length
+from utils import length, clamp
 
 class Bounding_box:
     """
@@ -129,6 +129,7 @@ class Cam( ):
         """
 
         f = self.camera.data.lens
+        s = 1.2 # scale factor of y axis (because of camera distortion)
 
         scale = self.scene.render.resolution_percentage/100.0
 
@@ -138,7 +139,7 @@ class Cam( ):
         aspect_ratio_y = self.scene.render.pixel_aspect_y
 
         mx = self.x_resolution/camera_width*scale
-        my = self.y_resolution/(camera_height*aspect_ratio_y)*scale
+        my = self.y_resolution/(camera_height*aspect_ratio_y)*scale*s
 
         cx = self.x_resolution*(0.5 - self.camera.data.shift_x)
         cy = self.y_resolution*(0.5 - self.camera.data.shift_y)
@@ -191,7 +192,7 @@ class Image_object:
 
         :param point: point in the world coordinate system
         :type point: mathutils.Vector (Vector (float, float, float))
-        :return: point in the image coordinate system
+        :return: point in the image coordinate system (normalized)
         :rtype: mathutils.Vector (Vector(float, float, float))
         """
 
@@ -203,7 +204,8 @@ class Image_object:
         point_image_coord = self.camera.K @ point_camera_coord
         point_image_coord /= point_image_coord[2]
 
-        point_image_coord[0] = self.camera.x_resolution - point_image_coord[0]
+        point_image_coord[0] = 1 - point_image_coord[0]/self.camera.x_resolution
+        point_image_coord[1] = point_image_coord[1]/self.camera.y_resolution
 
         return point_image_coord
 
@@ -219,12 +221,12 @@ class Image_object:
         image_vetices = [self.to_image_coord(c) for c in vertices_coord]
 
         x_vertices = [v[0] for v in image_vetices]
-        max_x = max(x_vertices)
-        min_x = min(x_vertices)
+        max_x = clamp(max(x_vertices), 0, 1)
+        min_x = clamp(min(x_vertices), 0, 1)
 
         y_vertices = [v[1] for v in image_vetices]
-        max_y = max(y_vertices)
-        min_y = min(y_vertices)
+        max_y = clamp(max(y_vertices), 0, 1)
+        min_y = clamp(min(y_vertices), 0, 1)
 
         self.box.set_box(min_x, min_y, max_x, max_y)
 
@@ -236,7 +238,7 @@ class Image_object:
         :rtype: tuple(float, float, float, float)
         """
 
-        if self.box.max_x < 1/2*self.box.width or self.box.min_x > self.camera.x_resolution - 1/2*self.box.width or self.box.max_y < 1/2*self.box.height or self.box.min_y > self.camera.y_resolution - 1/2*self.box.height:
+        if self.box.max_x < 1/4*self.box.width or self.box.min_x > 1 - 1/4*self.box.width or self.box.max_y < 1/4*self.box.height or self.box.min_y > 1 - 1/4*self.box.height:
             return (0.0, 0.0, 0.0, 0.0)
         else:
             return self.box.tuple( )
