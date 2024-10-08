@@ -12,7 +12,8 @@ Dataset.py: effectively implements the creation of the dataset from Blender.
 
 ### Results
 
-Some results are shown below
+Some results are shown below.
+Note the interesting distortion of the bounding boxes furthest from the center of the camera.
 
 ![train_1](https://github.com/user-attachments/assets/0eb29701-cd28-4fdd-bbac-780ad6f08f01)
 
