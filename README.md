@@ -16,6 +16,7 @@ Dataset.py: effectively implements the creation of the dataset from Blender. It 
 
 Some results are shown below. The first images correspond to the first version of the files. The rest, to the second.
 Note the interesting distortion of the bounding boxes in the first version compared to the second.
+The boxes were displayed by a secondary code on the generated images, based on the corresponding captions for each image.
 
 First version:
 
